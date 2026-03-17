@@ -1,0 +1,48 @@
+### GET para seleccionara todos los Profesionales
+GET http://localhost:3001/publicacionesTituloDetalle/seleccionarPublicacionesTituloDetalle
+Content-Type: application/json
+
+
+
+
+### POST para seleccionara todos los Profesionales
+POST http://localhost:3001/publicacionesTituloDetalle/insertarPublicacionesTituloDetalle
+Content-Type: application/json
+
+{
+  "publicacionesTitulo" :  "PRUEBAS",
+  "publicacionesDescripcion":  "PRUEBAS",
+  "publicacionesTituloDescripcionImagen" : "PRUEBAS"
+}
+
+
+
+### POST para seleccionara todos los Profesionales
+POST http://localhost:3001/publicacionesTituloDetalle/actualizarPublicacionesTituloDetalle
+Content-Type: application/json
+
+{
+  "publicacionesTitulo" :  "PRUEBAS ACTUALIZACION PRUEBAS ",
+  "publicacionesDescripcion":  "PRUEBAS1",
+  "publicacionesTituloDescripcionImagen" : "PRUEBAS1",
+  "id_publicacionesTituloDescripcion": 2
+}
+
+
+
+### POST para seleccionara todos los Profesionales
+POST http://localhost:3001/publicacionesTituloDetalle/eliminarPublicacionesTituloDetalle
+Content-Type: application/json
+
+{
+  "id_publicacionesTituloDescripcion": 2
+}
+
+
+### POST para seleccionara todos los Profesionales
+POST http://localhost:3001/publicacionesTituloDetalle/seleccionarEspecificoPublicacionesTituloDetalle
+Content-Type: application/json
+
+{
+  "id_publicacionesTituloDescripcion": 5
+}

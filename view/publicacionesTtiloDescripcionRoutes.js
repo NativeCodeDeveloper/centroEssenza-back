@@ -1,0 +1,13 @@
+import { Router } from "express";
+const router = Router();
+import PublicacionesTituloDescripcionController from "../controller/PublicacionesTituloDescripcionController.js";
+
+
+router.get('/seleccionarPublicacionesTituloDetalle', PublicacionesTituloDescripcionController.seleccionarPublicacionesTituloDescripcionController);
+router.post('/insertarPublicacionesTituloDetalle', PublicacionesTituloDescripcionController.insertarPublicacionesTituloDescripcionController);
+router.post('/actualizarPublicacionesTituloDetalle', PublicacionesTituloDescripcionController.actualizarPublicacionesTituloDescripcionController);
+router.post('/eliminarPublicacionesTituloDetalle', PublicacionesTituloDescripcionController.eliminarPublicacionesTituloDescripcionController);
+router.post('/seleccionarEspecificoPublicacionesTituloDetalle', PublicacionesTituloDescripcionController.seleccionarEspecifica_PublicacionesTituloDescripcionController);
+
+
+export default router;
