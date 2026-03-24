@@ -1,11 +1,17 @@
 import DataBase from '../config/Database.js';
+import { enviarMensajeWhatsApp } from './notificacionWhatsApp.js';
 
 /**
  * SISTEMA DE RECORDATORIOS AUTOMÁTICOS DE CITAS
  *
- * Envía correos de recordatorio:
+ * Envía correos de recordatorio (email):
  * - 12 horas antes de la cita
  * - 6 horas antes de la cita
+ *
+ * Envía recordatorios por WhatsApp:
+ * - 12 horas antes de la cita
+ * - 6 horas antes de la cita
+ * - 1 hora antes de la cita
  *
  * Debe ejecutarse como cron job cada 5-10 minutos
  */
@@ -176,7 +182,7 @@ ${fromName}
 }
 
 /**
- * Marca el recordatorio como enviado en la base de datos
+ * Marca el recordatorio de email como enviado en la base de datos
  */
 async function marcarRecordatorioEnviado(id_reserva, tipoRecordatorio) {
     try {
@@ -191,6 +197,23 @@ async function marcarRecordatorioEnviado(id_reserva, tipoRecordatorio) {
 }
 
 /**
+ * Marca el recordatorio de WhatsApp como enviado en la base de datos
+ */
+async function marcarRecordatorioWhatsAppEnviado(id_reserva, tipoRecordatorio) {
+    try {
+        const conexion = DataBase.getInstance();
+        const campos = { '12h': 'wspRecordatorio12h', '6h': 'wspRecordatorio6h', '1h': 'wspRecordatorio1h' };
+        const campo = campos[tipoRecordatorio];
+        if (!campo) return;
+        const query = `UPDATE reservaPacientes SET ${campo} = 1 WHERE id_reserva = ?`;
+        await conexion.ejecutarQuery(query, [id_reserva]);
+        console.log(`[WSP-RECORDATORIO] Marcado ${tipoRecordatorio} para reserva ${id_reserva}`);
+    } catch (error) {
+        console.error(`[WSP-RECORDATORIO] Error al marcar recordatorio:`, error.message);
+    }
+}
+
+/**
  * Obtiene las reservas que necesitan recordatorio
  * Busca citas entre 5.5 y 12.5 horas en el futuro
  */
@@ -200,18 +223,22 @@ async function obtenerReservasParaRecordatorio() {
 
         // Obtener reservas activas que están entre 0 y 13 horas en el futuro
         const query = `
-      SELECT 
+      SELECT
         id_reserva,
         nombrePaciente,
         apellidoPaciente,
         email,
+        telefono,
         fechaInicio,
         horaInicio,
         estadoReserva,
         COALESCE(recordatorio12h, 0) as recordatorio12h,
         COALESCE(recordatorio6h, 0) as recordatorio6h,
+        COALESCE(wspRecordatorio12h, 0) as wspRecordatorio12h,
+        COALESCE(wspRecordatorio6h, 0) as wspRecordatorio6h,
+        COALESCE(wspRecordatorio1h, 0) as wspRecordatorio1h,
         TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fechaInicio, horaInicio)) as minutos_restantes
-      FROM reservaPacientes 
+      FROM reservaPacientes
       WHERE estadoReserva IN ('reservada', 'CONFIRMADA')
         AND estadoPeticion <> 0
         AND TIMESTAMP(fechaInicio, horaInicio) > NOW()
@@ -239,8 +266,9 @@ function formatearFecha(fechaStr) {
  * FUNCIÓN PRINCIPAL - Ejecutar como cron job cada 5-10 minutos
  *
  * Revisa todas las reservas próximas y envía recordatorios:
- * - 12 horas antes (entre 11.5 y 12.5 horas = 690-750 minutos)
- * - 6 horas antes (entre 5.5 y 6.5 horas = 330-390 minutos)
+ * - 12 horas antes: email + WhatsApp (690-750 minutos)
+ * - 6 horas antes: email + WhatsApp (330-390 minutos)
+ * - 1 hora antes: WhatsApp (30-90 minutos)
  */
 export async function ejecutarRecordatoriosAutomaticos() {
     console.log("[RECORDATORIO] ========================================");
@@ -267,55 +295,69 @@ export async function ejecutarRecordatoriosAutomaticos() {
                 nombrePaciente,
                 apellidoPaciente,
                 email,
+                telefono,
                 fechaInicio,
                 horaInicio,
                 recordatorio12h,
                 recordatorio6h,
+                wspRecordatorio12h,
+                wspRecordatorio6h,
+                wspRecordatorio1h,
                 minutos_restantes
             } = reserva;
 
             console.log(`[RECORDATORIO] Procesando reserva ${id_reserva}: ${nombrePaciente} - ${minutos_restantes} minutos restantes`);
 
-            // Recordatorio de 12 horas (entre 690 y 750 minutos = 11.5h a 12.5h)
-            if (minutos_restantes >= 690 && minutos_restantes <= 750 && !recordatorio12h) {
-                console.log(`[RECORDATORIO] Enviando recordatorio de 12h a ${email}...`);
-
-                const enviado = await enviarCorreoRecordatorio({
-                    email,
-                    nombrePaciente,
-                    apellidoPaciente,
-                    fecha: formatearFecha(fechaInicio),
-                    hora: horaInicio,
-                    tipoRecordatorio: '12h'
-                });
-
-                if (enviado) {
-                    await marcarRecordatorioEnviado(id_reserva, '12h');
-                    enviados++;
-                } else {
-                    errores++;
+            // ===== RECORDATORIOS DE 12 HORAS (entre 690 y 750 minutos = 11.5h a 12.5h) =====
+            if (minutos_restantes >= 690 && minutos_restantes <= 750) {
+                // Email 12h
+                if (!recordatorio12h) {
+                    console.log(`[RECORDATORIO] Enviando correo de 12h a ${email}...`);
+                    const enviado = await enviarCorreoRecordatorio({
+                        email, nombrePaciente, apellidoPaciente,
+                        fecha: formatearFecha(fechaInicio), hora: horaInicio,
+                        tipoRecordatorio: '12h'
+                    });
+                    if (enviado) { await marcarRecordatorioEnviado(id_reserva, '12h'); enviados++; }
+                    else { errores++; }
+                }
+                // WhatsApp 12h
+                if (!wspRecordatorio12h) {
+                    console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 12h a ${telefono}...`);
+                    const enviado = await enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes: 12 });
+                    if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '12h'); enviados++; }
+                    else { errores++; }
                 }
             }
 
-            // Recordatorio de 6 horas (entre 330 y 390 minutos = 5.5h a 6.5h)
-            if (minutos_restantes >= 330 && minutos_restantes <= 390 && !recordatorio6h) {
-                console.log(`[RECORDATORIO] Enviando recordatorio de 6h a ${email}...`);
-
-                const enviado = await enviarCorreoRecordatorio({
-                    email,
-                    nombrePaciente,
-                    apellidoPaciente,
-                    fecha: formatearFecha(fechaInicio),
-                    hora: horaInicio,
-                    tipoRecordatorio: '6h'
-                });
-
-                if (enviado) {
-                    await marcarRecordatorioEnviado(id_reserva, '6h');
-                    enviados++;
-                } else {
-                    errores++;
+            // ===== RECORDATORIOS DE 6 HORAS (entre 330 y 390 minutos = 5.5h a 6.5h) =====
+            if (minutos_restantes >= 330 && minutos_restantes <= 390) {
+                // Email 6h
+                if (!recordatorio6h) {
+                    console.log(`[RECORDATORIO] Enviando correo de 6h a ${email}...`);
+                    const enviado = await enviarCorreoRecordatorio({
+                        email, nombrePaciente, apellidoPaciente,
+                        fecha: formatearFecha(fechaInicio), hora: horaInicio,
+                        tipoRecordatorio: '6h'
+                    });
+                    if (enviado) { await marcarRecordatorioEnviado(id_reserva, '6h'); enviados++; }
+                    else { errores++; }
                 }
+                // WhatsApp 6h
+                if (!wspRecordatorio6h) {
+                    console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 6h a ${telefono}...`);
+                    const enviado = await enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes: 6 });
+                    if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '6h'); enviados++; }
+                    else { errores++; }
+                }
+            }
+
+            // ===== RECORDATORIO DE 1 HORA (entre 30 y 90 minutos = 0.5h a 1.5h) - Solo WhatsApp =====
+            if (minutos_restantes >= 30 && minutos_restantes <= 90 && !wspRecordatorio1h) {
+                console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 1h a ${telefono}...`);
+                const enviado = await enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes: 1 });
+                if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '1h'); enviados++; }
+                else { errores++; }
             }
         }
 

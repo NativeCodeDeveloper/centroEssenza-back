@@ -73,10 +73,11 @@ export default class ReservaPacientes {
 
 
     //METODO PARA ACTUALZIAR NUEVAS CITAS MEDICAS
+    // Al actualizar se resetean los flags de recordatorio para que se reenvíen con la nueva fecha/hora
     async actualizarReserva(nombrePaciente, apellidoPaciente, rut, telefono, email, fechaInicio, horaInicio, fechaFinalizacion, horaFinalizacion, estadoReserva, id_profesional, id_reserva) {
         try {
             const conexion = DataBase.getInstance();
-            const query = 'UPDATE reservaPacientes SET nombrePaciente = ? , apellidoPaciente = ?, rut = ? , telefono = ? , email = ? , fechaInicio = ?  , horaInicio = ? , fechaFinalizacion = ? , horaFinalizacion = ? , estadoReserva = ? , id_profesional = ? WHERE id_reserva = ?';
+            const query = 'UPDATE reservaPacientes SET nombrePaciente = ? , apellidoPaciente = ?, rut = ? , telefono = ? , email = ? , fechaInicio = ?  , horaInicio = ? , fechaFinalizacion = ? , horaFinalizacion = ? , estadoReserva = ? , id_profesional = ? , recordatorio12h = 0, recordatorio6h = 0, wspRecordatorio12h = 0, wspRecordatorio6h = 0, wspRecordatorio1h = 0 WHERE id_reserva = ?';
             const param = [nombrePaciente, apellidoPaciente, rut, telefono, email, fechaInicio, horaInicio, fechaFinalizacion, horaFinalizacion, estadoReserva, id_profesional, id_reserva]
             const resultadoQuery = await conexion.ejecutarQuery(query, param);
 
