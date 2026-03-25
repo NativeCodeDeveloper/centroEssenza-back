@@ -19,9 +19,6 @@ Content-Type: application/json
 
 
 
-
-
-
 ### POST request to example server
 POST http://localhost:3001/producto/actualizarProducto
 Content-Type: application/json
@@ -44,19 +41,12 @@ Content-Type: application/json
 
 
 
-
-
-
-
-
-
-
 ### POST request to example server
 POST http://localhost:3001/producto/seleccionarPorSubcategoria
 Content-Type: application/json
 
 {
-  "subCategoria": 24
+  "subCategoria": 171
 }
 
 
@@ -70,3 +60,17 @@ Content-Type: application/json
 {
   "subsubcategoria": 2
 }
+
+
+### Seleccionar producto especifico por ID
+POST http://localhost:3001/producto/seleccionarProductoEspecifico_id
+Content-Type: application/json
+
+{
+  "id_producto": 172
+}
+
+
+
+### GET request to example server
+GET http://localhost:3001/producto/seleccionarProducto

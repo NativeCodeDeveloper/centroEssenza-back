@@ -40,6 +40,25 @@ export default class Producto {
 
 
 
+    async seleccionarProductoEspecifico(id_producto) {
+        try{
+            const conexion = DataBase.getInstance();
+            const query = `
+           SELECT * FROM productos WHERE id_producto = ? AND estadoProducto <> 0
+`;
+            const param = [id_producto];
+
+            const resultado = await conexion.ejecutarQuery(query, param);
+            if (resultado) {
+                return resultado;
+            }else{
+                return resultado;
+            }
+        }catch(error){
+            throw error;
+        }
+    }
+
     //SELECCION DE PRODUCTOS POR categoriaProducto
     async selectProductoCategoria(categoriaProducto){
         const conexion = DataBase.getInstance();
@@ -136,7 +155,18 @@ try {
     // SELECCION DE TODOS LOS PRODUCTOS DE LA BASE DE DATOS
   async selectProducto(){
     const conexion = DataBase.getInstance();
-    const query = 'SELECT * FROM productos WHERE estadoProducto <> 0 ORDER BY id_producto DESC';
+    const query = `
+    SELECT 
+    productos.*,
+    categoriaProductos.descripcionCategoria
+    
+    FROM productos
+    
+    INNER JOIN categoriaProductos ON 
+    categoriaProductos.id_categoriaProducto = productos.categoriaProducto 
+     
+     WHERE estadoProducto <> 0 ORDER BY id_producto DESC
+    `;
 try {
     const resultado = await conexion.ejecutarQuery(query);
     return resultado;

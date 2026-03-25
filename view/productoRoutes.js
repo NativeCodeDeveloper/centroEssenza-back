@@ -4,6 +4,8 @@ import ProductoController from "../controller/ProductoController.js";
 
 
 router.post('/buscarSimilar', ProductoController.seleccionarProductoSimilar);
+router.post('/seleccionarProductoEspecifico_id', ProductoController.seleccionarProductoEspecifico_id);
+
 router.post('/insertarProducto', ProductoController.insertarProducto);
 router.post('/seleccionarPorSubcategoria', ProductoController.seleccionarProductoSubcategoria);
 router.post('/seleccionarPorSubSubcategoria', ProductoController.seleccionarProductoSubSubcategoria);
@@ -19,6 +21,9 @@ router.post('/categoriaProducto', ProductoController.seleccionarProductoCategori
 router.get('/ordenarMayor', ProductoController.seleccionarTodosProductosMayorPrecio);
 router.get('/ordenarMenor', ProductoController.seleccionarTodosProductosMenorPrecio);
 router.get('/:id_producto', ProductoController.seleccionarProductoEspecifico);
+
+
+
 
 
 

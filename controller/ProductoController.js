@@ -4,6 +4,28 @@ export default class ProductoController {
   constructor() {}
 
 
+    // SELECCION DE LOS PRODUCTOS DE LA BASE DE DATOS CATEGORIA POR ID
+    static async seleccionarProductoEspecifico_id(req, res) {
+        try {
+            const { id_producto } = req.body;
+            console.log(req.body);
+
+            if (!id_producto) return res.status(404).json({message:"sindato"});
+
+                const producto = new Producto();
+                const respuestaModel = await producto.seleccionarProductoEspecifico(id_producto);
+                if (Array.isArray(respuestaModel) && respuestaModel.length > 0) {
+                    return res.status(200).json(respuestaModel);
+
+            }
+        } catch (error) {
+            res.status(500).json({message: "sindato",});
+        }
+    }
+
+
+
+
 
     // SELECCION DE LOS PRODUCTOS DE LA BASE DE DATOS CATEGORIA POR ID
     static async seleccionarProductoCategoria(req, res) {
