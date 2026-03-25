@@ -1,5 +1,5 @@
 import DataBase from '../config/Database.js';
-import { enviarMensajeWhatsApp } from './notificacionWhatsApp.js';
+import { enviarRecordatorioWhatsapp } from './notificacionWhatsApp.js';
 
 /**
  * SISTEMA DE RECORDATORIOS AUTOMÁTICOS DE CITAS
@@ -324,7 +324,12 @@ export async function ejecutarRecordatoriosAutomaticos() {
                 // WhatsApp 12h
                 if (!wspRecordatorio12h) {
                     console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 12h a ${telefono}...`);
-                    const enviado = await enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes: 12 });
+                    const enviado = await enviarRecordatorioWhatsapp({
+                        telefono,
+                        nombre: nombrePaciente,
+                        fecha: formatearFecha(fechaInicio),
+                        hora: horaInicio
+                    });
                     if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '12h'); enviados++; }
                     else { errores++; }
                 }
@@ -346,7 +351,12 @@ export async function ejecutarRecordatoriosAutomaticos() {
                 // WhatsApp 6h
                 if (!wspRecordatorio6h) {
                     console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 6h a ${telefono}...`);
-                    const enviado = await enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes: 6 });
+                    const enviado = await enviarRecordatorioWhatsapp({
+                        telefono,
+                        nombre: nombrePaciente,
+                        fecha: formatearFecha(fechaInicio),
+                        hora: horaInicio
+                    });
                     if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '6h'); enviados++; }
                     else { errores++; }
                 }
@@ -355,7 +365,12 @@ export async function ejecutarRecordatoriosAutomaticos() {
             // ===== RECORDATORIO DE 1 HORA (entre 30 y 90 minutos = 0.5h a 1.5h) - Solo WhatsApp =====
             if (minutos_restantes >= 30 && minutos_restantes <= 90 && !wspRecordatorio1h) {
                 console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 1h a ${telefono}...`);
-                const enviado = await enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes: 1 });
+                const enviado = await enviarRecordatorioWhatsapp({
+                    telefono,
+                    nombre: nombrePaciente,
+                    fecha: formatearFecha(fechaInicio),
+                    hora: horaInicio
+                });
                 if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '1h'); enviados++; }
                 else { errores++; }
             }

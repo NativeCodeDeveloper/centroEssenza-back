@@ -1,13 +1,15 @@
 import twilio from 'twilio';
 
 /**
- * SERVICIO DE NOTIFICACIONES WHATSAPP VÍA TWILIO
+ * SERVICIO DE NOTIFICACIONES WHATSAPP VÍA TWILIO (TEMPLATE APROBADO)
  *
- * Envía mensajes de recordatorio de citas por WhatsApp.
+ * Envía mensajes usando contentSid + contentVariables.
  * Requiere variables de entorno:
  * - TWILIO_ACCOUNT_SID
  * - TWILIO_AUTH_TOKEN
- * - TWILIO_WHATSAPP_NUMBER (ej: +14155238886)
+ * - TWILIO_WHATSAPP_FROM  (ej: +12605537594)
+ * - TWILIO_CONTENT_SID    (ej: HX0b7bd1b24b7822c0f8b92d6408947e6c)
+ * - NOMBRE_EMPRESA        (se usa como nombre de clínica por defecto)
  */
 
 /**
@@ -39,90 +41,75 @@ function formatearTelefonoWhatsApp(telefono) {
 }
 
 /**
- * Envía un mensaje de confirmación de agendamiento por WhatsApp
+ * Envía un mensaje de WhatsApp usando el template aprobado de Twilio.
+ *
+ * @param {Object} params
+ * @param {string} params.telefono  - Teléfono del paciente
+ * @param {string} params.nombre    - Nombre del paciente
+ * @param {string} params.clinica   - Nombre de la clínica (opcional, usa NOMBRE_EMPRESA)
+ * @param {string} params.fecha     - Fecha de la cita (ej: "Lunes 28 de Julio 2025")
+ * @param {string} params.hora      - Hora de la cita (ej: "10:30")
+ * @returns {Promise<boolean>} true si se envió correctamente
  */
-export async function enviarConfirmacionWhatsApp({ telefono, nombrePaciente, fechaInicio, horaInicio }) {
-    const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER, NOMBRE_EMPRESA } = process.env;
+export async function enviarRecordatorioWhatsapp({ telefono, nombre, clinica, fecha, hora }) {
+    const {
+        TWILIO_ACCOUNT_SID,
+        TWILIO_AUTH_TOKEN,
+        TWILIO_WHATSAPP_FROM,
+        TWILIO_CONTENT_SID,
+        NOMBRE_EMPRESA
+    } = process.env;
 
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP_NUMBER) {
-        console.warn("[WSP-CONFIRMACION] Credenciales de Twilio no configuradas. Mensaje no enviado.");
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+        console.warn("[WSP] Credenciales de Twilio no configuradas. Mensaje no enviado.");
+        return false;
+    }
+
+    if (!TWILIO_WHATSAPP_FROM) {
+        console.warn("[WSP] TWILIO_WHATSAPP_FROM no configurado. Mensaje no enviado.");
+        return false;
+    }
+
+    if (!TWILIO_CONTENT_SID) {
+        console.warn("[WSP] TWILIO_CONTENT_SID no configurado. Mensaje no enviado.");
         return false;
     }
 
     if (!telefono) {
-        console.warn("[WSP-CONFIRMACION] Teléfono vacío. Mensaje no enviado.");
+        console.warn("[WSP] Teléfono vacío. Mensaje no enviado.");
         return false;
     }
 
     const destinatario = formatearTelefonoWhatsApp(telefono);
     if (!destinatario) {
-        console.warn("[WSP-CONFIRMACION] No se pudo formatear el teléfono:", telefono);
+        console.warn("[WSP] No se pudo formatear el teléfono:", telefono);
         return false;
     }
 
-    const empresa = NOMBRE_EMPRESA || "la clínica";
-    const fecha = new Date(fechaInicio);
-    const fechaFormateada = fecha.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    const mensaje = `Hola ${nombrePaciente}, tu cita en ${empresa} ha sido agendada para el ${fechaFormateada} a las ${horaInicio}. ¡Te esperamos!`;
+    const nombreClinica = clinica || NOMBRE_EMPRESA || "la clínica";
+    const fromNumber = TWILIO_WHATSAPP_FROM.startsWith('+')
+        ? TWILIO_WHATSAPP_FROM
+        : `+${TWILIO_WHATSAPP_FROM}`;
 
     try {
         const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
         await client.messages.create({
-            body: mensaje,
-            from: `whatsapp:${TWILIO_WHATSAPP_NUMBER.startsWith('+') ? TWILIO_WHATSAPP_NUMBER : '+' + TWILIO_WHATSAPP_NUMBER}`,
-            to: destinatario
+            from: `whatsapp:${fromNumber}`,
+            to: destinatario,
+            contentSid: TWILIO_CONTENT_SID,
+            contentVariables: JSON.stringify({
+                1: nombre,
+                2: nombreClinica,
+                3: fecha,
+                4: hora
+            })
         });
 
-        console.log(`[WSP-CONFIRMACION] Mensaje de confirmación enviado a ${destinatario}`);
+        console.log(`[WSP] Mensaje enviado a ${destinatario} (${nombre} - ${fecha} ${hora})`);
         return true;
     } catch (error) {
-        console.error("[WSP-CONFIRMACION] Error al enviar mensaje:", error.message);
-        return false;
-    }
-}
-
-/**
- * Envía un mensaje de recordatorio por WhatsApp usando Twilio
- */
-export async function enviarMensajeWhatsApp({ telefono, nombrePaciente, horasRestantes }) {
-    const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER, NOMBRE_EMPRESA } = process.env;
-
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP_NUMBER) {
-        console.warn("[WSP-RECORDATORIO] Credenciales de Twilio no configuradas. Mensaje no enviado.");
-        return false;
-    }
-
-    if (!telefono) {
-        console.warn("[WSP-RECORDATORIO] Teléfono vacío. Mensaje no enviado.");
-        return false;
-    }
-
-    const destinatario = formatearTelefonoWhatsApp(telefono);
-    if (!destinatario) {
-        console.warn("[WSP-RECORDATORIO] No se pudo formatear el teléfono:", telefono);
-        return false;
-    }
-
-    const empresa = NOMBRE_EMPRESA || "la clínica";
-    const textoHoras = horasRestantes === 1 ? "1 hora" : `${horasRestantes} horas`;
-
-    const mensaje = `Hola ${nombrePaciente}, recuerda que tienes una cita en ${empresa} en ${textoHoras}. ¡Te esperamos!`;
-
-    try {
-        const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-
-        await client.messages.create({
-            body: mensaje,
-            from: `whatsapp:${TWILIO_WHATSAPP_NUMBER.startsWith('+') ? TWILIO_WHATSAPP_NUMBER : '+' + TWILIO_WHATSAPP_NUMBER}`,
-            to: destinatario
-        });
-
-        console.log(`[WSP-RECORDATORIO] Mensaje de ${textoHoras} enviado a ${destinatario}`);
-        return true;
-    } catch (error) {
-        console.error("[WSP-RECORDATORIO] Error al enviar mensaje:", error.message);
+        console.error("[WSP] Error al enviar mensaje:", error.message);
         return false;
     }
 }

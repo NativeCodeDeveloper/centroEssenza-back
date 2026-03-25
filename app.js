@@ -25,6 +25,7 @@ import serviciosProfesionalesRoutes from "./view/serviciosProfesionalesRoutes.js
 import tarifasProfesionalRoutes from "./view/tarifasProfesionalRoutes.js";
 import odontogramaRoutes from "./view/odontogramaRoutes.js";
 import { ejecutarRecordatoriosAutomaticos } from "./services/notificacionPreviaDia.js";
+import { enviarRecordatorioWhatsapp } from "./services/notificacionWhatsApp.js";
 import bloqueoAgendaRoutes from "./view/bloqueoAgendaRoutes.js";
 import publicacionesTituloDescripcionRoutes from "./view/publicacionesTtiloDescripcionRoutes.js";
 
@@ -70,11 +71,45 @@ app.use('/contacto', contactoRouter );
 app.use("/publicacionesTituloDetalle", publicacionesTituloDescripcionRoutes);
 app.use('/notificacion', notificacionAgendamientoRoutes);
 
-// Ruta para ejecutar recordatorios manualmente (útil para testing)
+// Ruta para ejecutar recordatorios manualmente (protegido con TEST_API_KEY)
 app.get('/recordatorios/ejecutar', async (req, res) => {
     try {
+        const apiKey = req.headers['x-api-key'];
+        if (!process.env.TEST_API_KEY || apiKey !== process.env.TEST_API_KEY) {
+            return res.status(401).json({ ok: false, error: "No autorizado" });
+        }
+
         const resultado = await ejecutarRecordatoriosAutomaticos();
         res.json({ ok: true, ...resultado });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// Endpoint de prueba para WhatsApp (protegido con TEST_API_KEY)
+app.post('/test-whatsapp', async (req, res) => {
+    try {
+        const apiKey = req.headers['x-api-key'];
+        if (!process.env.TEST_API_KEY || apiKey !== process.env.TEST_API_KEY) {
+            return res.status(401).json({ ok: false, error: "No autorizado" });
+        }
+
+        const { telefono, nombre, clinica, fecha, hora } = req.body;
+
+        if (!telefono || !nombre || !fecha || !hora) {
+            return res.status(400).json({
+                ok: false,
+                error: "Faltan campos: telefono, nombre, fecha, hora"
+            });
+        }
+
+        const enviado = await enviarRecordatorioWhatsapp({ telefono, nombre, clinica, fecha, hora });
+
+        if (enviado) {
+            res.json({ ok: true, message: "Mensaje WhatsApp enviado correctamente" });
+        } else {
+            res.status(500).json({ ok: false, error: "No se pudo enviar el mensaje. Revisa los logs." });
+        }
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
     }

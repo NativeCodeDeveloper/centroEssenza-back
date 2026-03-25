@@ -1,7 +1,7 @@
 import ReservaPacientes from "../model/ReservaPacientes.js";
 import Pacientes from "../model/Pacientes.js";
 import NotificacionAgendamiento from "../services/notificacionAgendamiento.js";
-import { enviarConfirmacionWhatsApp } from "../services/notificacionWhatsApp.js";
+import { enviarRecordatorioWhatsapp } from "../services/notificacionWhatsApp.js";
 
 export default class ReservaPacienteController {
     constructor() {
@@ -344,10 +344,13 @@ export default class ReservaPacienteController {
                     });
 
                     // Enviar WhatsApp de confirmación
-                    enviarConfirmacionWhatsApp({
-                        telefono, nombrePaciente, fechaInicio, horaInicio
+                    enviarRecordatorioWhatsapp({
+                        telefono,
+                        nombre: nombrePaciente,
+                        fecha: fechaInicio,
+                        hora: horaInicio
                     }).catch(err => {
-                        console.error("[WSP-CONFIRMACION] Error:", err.message);
+                        console.error("[WSP] Error:", err.message);
                     });
 
                     return res.status(200).send({message: true})
@@ -456,10 +459,13 @@ export default class ReservaPacienteController {
                     });
 
                     // Enviar WhatsApp de confirmación
-                    enviarConfirmacionWhatsApp({
-                        telefono, nombrePaciente, fechaInicio, horaInicio
+                    enviarRecordatorioWhatsapp({
+                        telefono,
+                        nombre: nombrePaciente,
+                        fecha: fechaInicio,
+                        hora: horaInicio
                     }).catch(err => {
-                        console.error("[WSP-CONFIRMACION] Error:", err.message);
+                        console.error("[WSP] Error:", err.message);
                     });
 
                     return res.status(200).send({message: true})
