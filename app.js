@@ -25,7 +25,7 @@ import serviciosProfesionalesRoutes from "./view/serviciosProfesionalesRoutes.js
 import tarifasProfesionalRoutes from "./view/tarifasProfesionalRoutes.js";
 import odontogramaRoutes from "./view/odontogramaRoutes.js";
 import { ejecutarRecordatoriosAutomaticos } from "./services/notificacionPreviaDia.js";
-import { enviarRecordatorioWhatsapp } from "./services/notificacionWhatsApp.js";
+import { notificacionAgendamiento } from "./services/notificacionWhatsApp.js";
 import bloqueoAgendaRoutes from "./view/bloqueoAgendaRoutes.js";
 import publicacionesTituloDescripcionRoutes from "./view/publicacionesTtiloDescripcionRoutes.js";
 
@@ -103,7 +103,7 @@ app.post('/test-whatsapp', async (req, res) => {
             });
         }
 
-        const enviado = await enviarRecordatorioWhatsapp({ telefono, nombre, clinica, fecha, hora });
+        const enviado = await notificacionAgendamiento({ telefono, nombre, clinica, fecha, hora });
 
         if (enviado) {
             res.json({ ok: true, message: "Mensaje WhatsApp enviado correctamente" });

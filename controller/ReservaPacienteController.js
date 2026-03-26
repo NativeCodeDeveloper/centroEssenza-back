@@ -1,7 +1,7 @@
 import ReservaPacientes from "../model/ReservaPacientes.js";
 import Pacientes from "../model/Pacientes.js";
 import NotificacionAgendamiento from "../services/notificacionAgendamiento.js";
-import { enviarRecordatorioWhatsapp } from "../services/notificacionWhatsApp.js";
+import { notificacionAgendamiento } from "../services/notificacionWhatsApp.js";
 
 export default class ReservaPacienteController {
     constructor() {
@@ -344,7 +344,7 @@ export default class ReservaPacienteController {
                     });
 
                     // Enviar WhatsApp de confirmación
-                    enviarRecordatorioWhatsapp({
+                    notificacionAgendamiento({
                         telefono,
                         nombre: nombrePaciente,
                         fecha: fechaInicio,
@@ -459,7 +459,7 @@ export default class ReservaPacienteController {
                     });
 
                     // Enviar WhatsApp de confirmación
-                    enviarRecordatorioWhatsapp({
+                    notificacionAgendamiento({
                         telefono,
                         nombre: nombrePaciente,
                         fecha: fechaInicio,

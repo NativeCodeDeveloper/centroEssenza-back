@@ -1,5 +1,5 @@
 import DataBase from '../config/Database.js';
-import { enviarRecordatorioWhatsapp } from './notificacionWhatsApp.js';
+import { enviarRecordatorio_1hora } from './notificacionWhatsApp.js';
 
 /**
  * SISTEMA DE RECORDATORIOS AUTOMÁTICOS DE CITAS
@@ -16,7 +16,7 @@ import { enviarRecordatorioWhatsapp } from './notificacionWhatsApp.js';
  * Debe ejecutarse como cron job cada 5-10 minutos
  */
 
-const DIRECCION_CLINICA = "SILUETA CHIC, Avenida Irarrázaval 1989 OF 204 SUR, Ñuñoa, Santiago, Chile";
+const DIRECCION_CLINICA = process.env.DIRECCION_EMPRESA;
 
 /**
  * Envía el correo de recordatorio usando Brevo API
@@ -321,18 +321,8 @@ export async function ejecutarRecordatoriosAutomaticos() {
                     if (enviado) { await marcarRecordatorioEnviado(id_reserva, '12h'); enviados++; }
                     else { errores++; }
                 }
-                // WhatsApp 12h
-                if (!wspRecordatorio12h) {
-                    console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 12h a ${telefono}...`);
-                    const enviado = await enviarRecordatorioWhatsapp({
-                        telefono,
-                        nombre: nombrePaciente,
-                        fecha: formatearFecha(fechaInicio),
-                        hora: horaInicio
-                    });
-                    if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '12h'); enviados++; }
-                    else { errores++; }
-                }
+
+
             }
 
             // ===== RECORDATORIOS DE 6 HORAS (entre 330 y 390 minutos = 5.5h a 6.5h) =====
@@ -348,24 +338,13 @@ export async function ejecutarRecordatoriosAutomaticos() {
                     if (enviado) { await marcarRecordatorioEnviado(id_reserva, '6h'); enviados++; }
                     else { errores++; }
                 }
-                // WhatsApp 6h
-                if (!wspRecordatorio6h) {
-                    console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 6h a ${telefono}...`);
-                    const enviado = await enviarRecordatorioWhatsapp({
-                        telefono,
-                        nombre: nombrePaciente,
-                        fecha: formatearFecha(fechaInicio),
-                        hora: horaInicio
-                    });
-                    if (enviado) { await marcarRecordatorioWhatsAppEnviado(id_reserva, '6h'); enviados++; }
-                    else { errores++; }
-                }
+
             }
 
             // ===== RECORDATORIO DE 1 HORA (entre 30 y 90 minutos = 0.5h a 1.5h) - Solo WhatsApp =====
             if (minutos_restantes >= 30 && minutos_restantes <= 90 && !wspRecordatorio1h) {
                 console.log(`[WSP-RECORDATORIO] Enviando WhatsApp de 1h a ${telefono}...`);
-                const enviado = await enviarRecordatorioWhatsapp({
+                const enviado = await enviarRecordatorio_1hora({
                     telefono,
                     nombre: nombrePaciente,
                     fecha: formatearFecha(fechaInicio),
