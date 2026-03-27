@@ -63,11 +63,23 @@ export async function notificacionAgendamiento({ telefono, nombre, clinica, fech
         TWILIO_AUTH_TOKEN,
         TWILIO_WHATSAPP_FROM,
         TWILIO_CONTENT_SID,
-        NOMBRE_EMPRESA
+        NOMBRE_EMPRESA,
+        DIRECCION_EMPRESA,
+        TELEFONO_EMPRESA
     } = process.env;
 
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
         console.warn("[WSP] Credenciales de Twilio no configuradas. Mensaje no enviado.");
+        return false;
+    }
+
+    if(!DIRECCION_EMPRESA){
+        console.warn(`[DIRECCION_EMPRESA] no ha sido configurado`);
+        return false;
+    }
+
+    if (!TELEFONO_EMPRESA) {
+        console.warn(`No ha sido configurado correctamente`);
         return false;
     }
 
@@ -108,7 +120,9 @@ export async function notificacionAgendamiento({ telefono, nombre, clinica, fech
                 1: nombre,
                 2: nombreClinica,
                 3: fecha,
-                4: hora
+                4: hora,
+                5: DIRECCION_EMPRESA,
+                6: TELEFONO_EMPRESA,
             })
         });
 
@@ -133,11 +147,23 @@ export async function enviarRecordatorio_1hora({ telefono, nombre, clinica, fech
         TWILIO_AUTH_TOKEN,
         TWILIO_WHATSAPP_FROM,
         TWILIO_CONTENT_SID_RECORDATORIO,
-        NOMBRE_EMPRESA
+        NOMBRE_EMPRESA,
+        TELEFONO_EMPRESA,
+        DIRECCION_EMPRESA,
     } = process.env;
 
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
         console.warn("[WSP] Credenciales de Twilio no configuradas. Mensaje no enviado.");
+        return false;
+    }
+
+    if (!TELEFONO_EMPRESA) {
+        console.warn(`[TELEFONO_EMPRESA], telefono empresa no configurado. Mensaje no enviado.`);
+        return false;
+    }
+
+    if (!DIRECCION_EMPRESA) {
+        console.warn(`[DIRECCION_EMPRESA], direccion no configuradas. Mensaje no enviado.`);
         return false;
     }
 
@@ -178,7 +204,9 @@ export async function enviarRecordatorio_1hora({ telefono, nombre, clinica, fech
                 1: nombre,
                 2: nombreClinica,
                 3: fecha,
-                4: hora
+                4: hora,
+                5: DIRECCION_EMPRESA,
+                6: TELEFONO_EMPRESA
             })
         });
 
