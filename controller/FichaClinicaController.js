@@ -206,4 +206,29 @@ export default class FichaClinicaController {
     }
 
 
+
+
+    // 8. SELECCION DE LAS FICHAS CLINICAS ESPECIFICAS POR id_paciente y similitud nombre de profesional diferente de cero§
+    static async seleccionarFichasPacienteSimilitudProfesional(req, res) {
+        try {
+            const {id_paciente,observaciones} = req.body;
+            console.log(req.body);
+
+
+            if (!id_paciente) {
+                return res.status(400).json({message: "sindato"});
+            }
+
+            const fichaclinicamodel = new FichaClinica();
+            const dataFichaClinica = await fichaclinicamodel.selectFichasPacienteSimilitudProfesional(id_paciente,observaciones);
+            if (dataFichaClinica) {
+                return res.status(200).json(dataFichaClinica);
+            } else {
+                return res.status(404).json({message: "sindato",});
+            }
+        } catch (error) {
+            return res.status(500).json({message: "No se ha podido realizar la consulta desde FichaClinicaController / Contacte al equipo de soporte",});
+        }
+    }
+
 }

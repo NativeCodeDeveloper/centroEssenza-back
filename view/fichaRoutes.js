@@ -10,6 +10,7 @@ router.post("/editarFichaPaciente", FichaClinicaController.editarFichaPaciente);
 router.post("/insertarFichaClinica", FichaClinicaController.insertarNuevaFichaPaciente);
 router.post("/eliminarFichaClinica", FichaClinicaController.eliminarFicha);
 router.post("/seleccionarFichaEspecificaPorId", FichaClinicaController.seleccionarFichaPacientePorIDdeFicha);
+router.post("/seleccionarFichasPacienteSimilitudProfesional", FichaClinicaController.seleccionarFichasPacienteSimilitudProfesional);
 
 
 export default router;

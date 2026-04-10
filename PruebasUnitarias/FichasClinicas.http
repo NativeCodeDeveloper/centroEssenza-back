@@ -1,0 +1,8 @@
+### seleccionarFichasPacienteSimilitudProfesional
+POST http://localhost:3001/ficha/seleccionarFichasPacienteSimilitudProfesional
+Content-Type: application/json
+
+{
+  "id_paciente": 289,
+  "observaciones": "Patricia Guevara vargas"
+}

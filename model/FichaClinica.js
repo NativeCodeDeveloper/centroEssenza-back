@@ -128,4 +128,23 @@ export default class FichaClinica {
     }
 
 
+
+    // 8. SELECCION DE LAS FICHAS CLINICAS ESPECIFICAS POR id_paciente y similitud nombre de profesional diferente de cero§
+    async selectFichasPacienteSimilitudProfesional(id_paciente,observaciones) {
+        const conexion = DataBase.getInstance();
+        const query = `SELECT * FROM fichaClinica 
+        WHERE 
+        id_paciente = ? AND 
+        observaciones like ? AND
+        estadoFicha <> 0 ORDER BY fechaConsulta DESC`;
+        const param = [id_paciente, `%${observaciones}%`]
+        try {
+            const resultado = await conexion.ejecutarQuery(query, param);
+            return resultado;
+        } catch (error) {
+            throw new Error('No se puede seleccionar Informacion la ficha clinica / Problema al establecer la conexion con la base de datos desde la clase Pacientes.js')
+        }
+    }
+
+
 }
