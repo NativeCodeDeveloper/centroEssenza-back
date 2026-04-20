@@ -174,6 +174,8 @@ export default class ReservaPacienteController {
                 rut,
                 telefono,
                 email,
+                fechaNacimientoPaciente,
+                sexoPaciente,
                 fechaInicio,
                 horaInicio,
                 fechaFinalizacion,
@@ -394,8 +396,8 @@ export default class ReservaPacienteController {
 
             let nombre = nombrePaciente;
             let apellido = apellidoPaciente;
-            let nacimiento = null;
-            let sexo = null;
+            let nacimiento = fechaNacimientoPaciente || fechaInicio;
+            let sexo = sexoPaciente || 'Sin especificar';
             let prevision_id = 0;
             let correo = null;
             let direccion = null;
