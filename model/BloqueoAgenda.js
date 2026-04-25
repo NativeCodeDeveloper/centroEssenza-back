@@ -17,8 +17,17 @@ export default class BloqueoAgenda {
     async insertarBloqueoAgendaModel(id_profesional,fechaInicio,horaInicio,fechaFinalizacion,horaFinalizacion,motivo) {
         try {
             const conexion = DataBase.getInstance();
-            const queryPrevia = 'SELECT * FROM bloqueoAgenda WHERE fechaInicio BETWEEN ? AND ? AND id_profesional = ? AND estado_bloqueoAgenda <> 0 ';
-            const paramsPrevios = [fechaInicio,fechaFinalizacion,id_profesional];
+            const queryPrevia = `
+                SELECT id_bloqueo
+                FROM bloqueoAgenda
+                WHERE id_profesional = ?
+                AND estado_bloqueoAgenda <> 0
+                AND NOT (
+                    TIMESTAMP(fechaFinalizacion, horaFinalizacion) <= TIMESTAMP(?, ?)
+                    OR TIMESTAMP(fechaInicio, horaInicio) >= TIMESTAMP(?, ?)
+                )
+            `;
+            const paramsPrevios = [id_profesional, fechaInicio, horaInicio, fechaFinalizacion, horaFinalizacion];
 
             const respuestaBackendVerificadora = await conexion.ejecutarQuery(queryPrevia, paramsPrevios);
             let disponibilidadHorarioBloqueo;
